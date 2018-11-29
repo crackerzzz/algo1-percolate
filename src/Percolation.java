@@ -2,10 +2,10 @@ import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
 public class Percolation {
 	private final WeightedQuickUnionUF unionFind;
-	private final int count;
-	private int openSites = 0;
-	private final boolean[][] open;
-	private final boolean[][] full;
+
+	private final int N; // size of row or column of grid
+	private int openSites = 0; // number of sites opened
+	private final boolean[][] open; // keep track of open sites
 	private final int top; // virtual top site
 	private final int bottom; // virtual bottom site
 
@@ -14,9 +14,8 @@ public class Percolation {
 		if (n <= 0) {
 			throw new IllegalArgumentException("n should be greater than 0.");
 		}
-		this.count = n;
+		this.N = n;
 		this.open = new boolean[n][n];
-		this.full = new boolean[n][n];
 		this.unionFind = new WeightedQuickUnionUF(n * n + 2); // additional two spaces for virtual top and bottom
 
 		// avoid calculating bottom in a loop
@@ -25,10 +24,9 @@ public class Percolation {
 		this.top = n * n;
 		this.bottom = this.top + 1;
 		for (int i = 0; i < n; i++) {
-			unionFind.union(this.top, i);
-			unionFind.union(this.bottom, bottomRow + i);
+			unionFind.union(this.top, i);// connect top to first row
+			unionFind.union(this.bottom, bottomRow + i); // connect bottom to last row
 		}
-		System.out.println();
 	}
 
 	// open site (row, col) if it is not open already
@@ -47,11 +45,6 @@ public class Percolation {
 		connectAdjacent(p, row, col + 1);
 		connectAdjacent(p, row + 1, col);
 		connectAdjacent(p, row, col - 1);
-
-		// openAdjacent(p, row - 1, col);
-		// openAdjacent(p, row, col + 1);
-		// openAdjacent(p, row + 1, col);
-		// openAdjacent(p, row, col - 1);
 	}
 
 	// is site (row, col) open?
@@ -63,8 +56,8 @@ public class Percolation {
 	// is site (row, col) full?
 	public boolean isFull(int row, int col) {
 		validate(row, col);
+		// site is full open iff it is open and connected to top
 		return isOpen(row, col) && unionFind.connected(top, getSingleIndex(row, col));
-		// return full[row - 1][col - 1];
 	}
 
 	// number of open sites
@@ -78,10 +71,10 @@ public class Percolation {
 	}
 
 	private void connectAdjacent(int p, int row, int col) {
-		if (row - 1 < 0 || row - 1 >= count) {
+		if (row - 1 < 0 || row - 1 >= N) {
 			return;
 		}
-		if (col - 1 < 0 || col - 1 >= count) {
+		if (col - 1 < 0 || col - 1 >= N) {
 			return;
 		}
 
@@ -94,41 +87,15 @@ public class Percolation {
 		}
 	}
 
-	private void openAdjacent(int p, int row, int col) {
-		// avoid processing for out of range row, col
-		if (row - 1 < 0 || row - 1 >= count) {
-			return;
-		}
-		if (col - 1 < 0 || col - 1 >= count) {
-			return;
-		}
-
-		if (!isOpen(row - 1, col - 1)) {
-			return;
-		}
-		if (isFull(row - 1, col - 1)) {
-			return;
-		}
-
-		if (row - 1 == 0) {
-			full[row - 1][col - 1] = true;
-		}
-
-		openAdjacent(p, row - 1, col); // open above
-		openAdjacent(p, row, col + 1); // open right
-		openAdjacent(p, row + 1, col); // open below
-		openAdjacent(p, row, col - 1); // open left
-	}
-
 	private void validate(int row, int col) {
-		if (row - 1 < 0 || row - 1 >= count)
+		if (row - 1 < 0 || row - 1 >= N)
 			throw new IndexOutOfBoundsException("row index " + row + " out of bounds");
-		if (col - 1 < 0 || col - 1 >= count)
+		if (col - 1 < 0 || col - 1 >= N)
 			throw new IndexOutOfBoundsException("column index " + col + " out of bounds");
 	}
 
 	private int getSingleIndex(int row, int col) {
-		return (row - 1) * count + (col - 1);
+		return (row - 1) * N + (col - 1);
 	}
 
 	// test client (optional)
