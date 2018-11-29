@@ -36,7 +36,22 @@ public class Percolation {
 		if (isOpen(row, col)) {
 			return;
 		}
-		openAdjacent(getSingleIndex(row, col), row, col); // open above
+
+		open[row - 1][col - 1] = true;
+		openSites++;
+
+		final int p = getSingleIndex(row, col);
+
+		// try and connect self with adjacent cells.
+		connectAdjacent(p, row - 1, col);
+		connectAdjacent(p, row, col + 1);
+		connectAdjacent(p, row + 1, col);
+		connectAdjacent(p, row, col - 1);
+
+		// openAdjacent(p, row - 1, col);
+		// openAdjacent(p, row, col + 1);
+		// openAdjacent(p, row + 1, col);
+		// openAdjacent(p, row, col - 1);
 	}
 
 	// is site (row, col) open?
@@ -48,7 +63,8 @@ public class Percolation {
 	// is site (row, col) full?
 	public boolean isFull(int row, int col) {
 		validate(row, col);
-		return full[row - 1][col - 1];
+		return isOpen(row, col) && unionFind.connected(top, getSingleIndex(row, col));
+		// return full[row - 1][col - 1];
 	}
 
 	// number of open sites
@@ -61,6 +77,23 @@ public class Percolation {
 		return unionFind.connected(top, bottom);
 	}
 
+	private void connectAdjacent(int p, int row, int col) {
+		if (row - 1 < 0 || row - 1 >= count) {
+			return;
+		}
+		if (col - 1 < 0 || col - 1 >= count) {
+			return;
+		}
+
+		if (isOpen(row, col)) {
+			final int q = getSingleIndex(row, col);
+			if (!unionFind.connected(p, q)) {
+				// connect p and q
+				unionFind.union(p, q);
+			}
+		}
+	}
+
 	private void openAdjacent(int p, int row, int col) {
 		// avoid processing for out of range row, col
 		if (row - 1 < 0 || row - 1 >= count) {
@@ -70,20 +103,17 @@ public class Percolation {
 			return;
 		}
 
+		if (!isOpen(row - 1, col - 1)) {
+			return;
+		}
+		if (isFull(row - 1, col - 1)) {
+			return;
+		}
+
 		if (row - 1 == 0) {
 			full[row - 1][col - 1] = true;
 		}
 
-		if (isOpen(row, col)) {
-			final int q = getSingleIndex(row, col);
-			if (!unionFind.connected(p, q)) {
-				// connect p and q
-				unionFind.union(p, q);
-			}
-		} else {
-			open[row - 1][col - 1] = true;
-			openSites++;
-		}
 		openAdjacent(p, row - 1, col); // open above
 		openAdjacent(p, row, col + 1); // open right
 		openAdjacent(p, row + 1, col); // open below
