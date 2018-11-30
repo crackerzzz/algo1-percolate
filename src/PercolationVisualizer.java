@@ -32,7 +32,7 @@ public class PercolationVisualizer {
 	}
 
 	public static void draw(Percolation perc, int n) {
-		draw(perc, n);
+		draw(perc, n, "");
 	}
 
 	// draw n-by-n percolation system
